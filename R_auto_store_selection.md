@@ -153,10 +153,14 @@ library(lpSolve)
 library(irr)
 library(report)
 library(sjPlot)
+```
+
+    ## Install package "strengejacke" from GitHub (`devtools::install_github("strengejacke/strengejacke")`) to load all sj-packages at once!
+
+``` r
 library(sjmisc)
 ```
 
-    ## Learn more about sjmisc with 'browseVignettes("sjmisc")'.
     ## 
     ## Attaching package: 'sjmisc'
     ## 
@@ -294,6 +298,7 @@ library(palmerpenguins)
 #install.packages("olsrr")
 #install.packages("geosphere")
 #install.packages("ggmap")
+#install.packages("leaflet")
 library(ggmap) 
 ```
 
@@ -321,6 +326,7 @@ library(gplots)    # heatmap
 
 ``` r
 library(png)
+library(leaflet)
 ```
 
 ## Import dataset
@@ -336,7 +342,7 @@ names(car_stores)
     ## [7] "lat"               "lon"
 
 ``` r
-## change column name
+## Change column name
 names(car_stores)[names(car_stores) == "percetage of male"] <-"percentage_male"
 ```
 
@@ -359,20 +365,19 @@ summary(car_stores)
     ##  3rd Qu.:0.5850   3rd Qu.: 8.921   3rd Qu.:51.07   3rd Qu.:13.80  
     ##  Max.   :0.6700   Max.   :58.506   Max.   :51.15   Max.   :13.90
 
-## Customer Coverage Analysis
+## 1. Customer Coverage Analysis
 
 ``` r
 car_stores$customer<-car_stores$residents * car_stores$percentage_male
 ```
 
-### bar plot: number of customers
+### Bar plot: number of customers
 
 ``` r
-# bar plot_number of people 
-# reorder in descending order
+# Re-order in descending order
 car_stores <- car_stores[order(-car_stores$customer), ]
 
-# the top 3 highest potential customers
+# Select the top 3 highest potential customers
 top_3_indices <- 1:3
 
 # Create a vector of colors
@@ -380,10 +385,10 @@ bar_colors <- rep("lightblue", nrow(car_stores))  # Set a default color for all 
 bar_colors[top_3_indices] <- "blue"         # Highlight the top 3 highest bars in red
 
 
-# re-define y-axis labels
+# Re-define y-axis labels
 new_y_labels <- seq(0, ceiling(max(car_stores$customer) / 5000) * 5000, by = 5000)
 
-# determine the y-axis limits based on the custom labels
+# Determine the y-axis limits based on the custom labels
 y_limits <- range(new_y_labels)
 
 # Create a bar chart with custom colors
@@ -399,7 +404,7 @@ barplot(car_stores$customer,
 
 ![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-## Geographic Analysis
+## 2. Geographic Analysis
 
 ``` r
 #install.packages("geosphere")
@@ -419,7 +424,7 @@ dresden_places <- data.frame(car_stores$plz,
 ### Calculate distance
 
 ``` r
-# create a matrix to show the distance between each locations
+# Create a matrix to show the distance between each locations
 n <- nrow(dresden_places)
 distances_matrix <- matrix(NA, n, n)
 for (i in 1:n) {
@@ -431,12 +436,12 @@ for (i in 1:n) {
   }
 }
 
-# assign row and column names to matrix
+# Assign row and column names to matrix
 rownames(distances_matrix) <- dresden_places$car_stores.plz
 colnames(distances_matrix) <- dresden_places$car_stores.plz
 
 
-# showing 10 rows of matrix
+# Show 10 rows of matrix
 print(distances_matrix[1:10, ])
 ```
 
@@ -488,7 +493,7 @@ print(distances_matrix[1:10, ])
 ### Heatmap
 
 ``` r
-# using the matrix to create a heatmap to more directly show the distance
+# Use the matrix to create a heatmap to more directly show the distance
 #install.packages("gplots")
 library(gplots)
 #install.packages("png")
@@ -507,4 +512,157 @@ heatmap.2(distances_matrix,
 
 ![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-\`\`\`
+### Specific location
+
+### 1277, 1159 and 1069
+
+``` r
+# 1277
+# select column 1277 from matrix
+distance_1277<-distances_matrix[,1] # select column 1277
+print(distance_1277)
+```
+
+    ##      1277      1099      1159      1309      1279      1169      1157      1139 
+    ##     0.000  6466.919  7165.057  1472.695  1906.571  9687.124 10087.843  8939.783 
+    ##      1069      1257      1239      1129      1219      1307      1237      1109 
+    ##  4883.582  4443.662  4408.970  8259.630  2471.840  2726.920  2141.802  9924.470 
+    ##      1259      1127      1328      1217      1097      1187      1326      1067 
+    ##  5612.118  6918.171  7222.641  4586.687  5620.529  6971.765  3637.706  6712.832 
+    ##      1324      1156      1189      1108 
+    ##  4340.535 13127.304  7315.643 12732.496
+
+``` r
+distance_1277=as.data.frame(distance_1277) # convert it into dataframe
+# rename column
+names(distance_1277)[1] <- "distance_from_1277"
+distance_1277 <- tibble::rownames_to_column(distance_1277, "locations")
+ncol(distance_1277) # check columns: should be 2 columns
+```
+
+    ## [1] 2
+
+``` r
+# 1159
+# select column 1159 from matrix
+distance_1159<-distances_matrix[,3] # select column 1159
+print(distance_1159)
+```
+
+    ##      1277      1099      1159      1309      1279      1169      1157      1139 
+    ##  7165.057 10607.028     0.000  6494.847  8896.722  2633.711  3589.064  4020.086 
+    ##      1069      1257      1239      1129      1219      1307      1237      1109 
+    ##  2303.770  9495.091  7751.712  6398.772  5898.775  5077.847  7833.672  9601.646 
+    ##      1259      1127      1328      1217      1097      1187      1326      1067 
+    ## 11820.755  4350.399 14333.836  4424.284  3954.949  1862.795 10731.906  2004.846 
+    ##      1324      1156      1189      1108 
+    ## 10935.014  6115.287  3411.852 13671.182
+
+``` r
+distance_1159=as.data.frame(distance_1159) # convert it into dataframe
+# rename column
+names(distance_1159)[1] <- "distance_from_1159"
+distance_1159 <- tibble::rownames_to_column(distance_1159, "locations")
+ncol(distance_1159) # check columns: should be 2 columns
+```
+
+    ## [1] 2
+
+``` r
+# 1069
+# select column 1069 from matrix
+distance_1069<-distances_matrix[,9] # select column 1069
+print(distance_1069)
+```
+
+    ##      1277      1099      1159      1309      1279      1169      1157      1139 
+    ##  4883.582  9065.168  2303.770  4355.131  6593.295  4810.293  5610.312  5244.743 
+    ##      1069      1257      1239      1129      1219      1307      1237      1109 
+    ##     0.000  7371.478  5806.984  6467.207  3679.609  3099.111  5570.227  9375.622 
+    ##      1259      1127      1328      1217      1097      1187      1326      1067 
+    ##  9590.362  4384.062 12085.580  2740.362  3357.886  2416.620  8429.761  2650.668 
+    ##      1324      1156      1189      1108 
+    ##  8814.768  8388.858  3487.106 13211.424
+
+``` r
+distance_1069=as.data.frame(distance_1069) # convert it into dataframe
+# rename column
+names(distance_1069)[1] <- "distance_from_1069"
+# row name to column
+distance_1069 <- tibble::rownames_to_column(distance_1069, "locations")
+ncol(distance_1069) # check columns: should be 2 columns
+```
+
+    ## [1] 2
+
+### Geographic map
+
+Show 28 locations.
+
+``` r
+#install.packages("leaflet")
+#library(leaflet)
+
+# Select data with latitude and longitude
+dresden_places <- data.frame(car_stores$plz, 
+                             car_stores$lat,
+                             car_stores$lon,
+                             car_stores$customer)
+# Create a leaflet map
+m <- leaflet(data = dresden_places) %>%
+  addTiles()  # Use the default OpenStreetMap tileset
+
+# Add markers for each place
+for (i in 1:nrow(dresden_places)) {
+  m <- addMarkers(map = m, 
+                  lng = dresden_places$car_stores.lon[i], 
+                  lat = dresden_places$car_stores.lat[i],
+                  label = dresden_places$car_stores.plz[i], 
+                  labelOptions = labelOptions(noHide = TRUE))
+                  #popup = dresden_places$car_stores.plz[i])
+}
+
+# Display the map
+m
+```
+
+![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+``` r
+webshot::install_phantomjs()
+```
+
+    ## It seems that the version of `phantomjs` installed is greater than or equal to the requested version.To install the requested version or downgrade to another version, use `force = TRUE`.
+
+### Geographic map with customer information
+
+``` r
+# show customer: 
+
+car_stores$customer <- as.numeric(car_stores$customer)
+# Convert the values in the "Value" column to integers
+car_stores$customer <- as.integer(car_stores$customer)
+
+# Create a leaflet map
+m_customer <- leaflet(data = dresden_places) %>%
+  addTiles()#%>%  # Use the default OpenStreetMap tileset
+  #addMarkers(
+    #label = ~as.integer(Value),  # Format the label to display as an integer
+    #popup = ~as.integer(Value)  # Format the pop-up content as an integer
+  #)
+
+# Add markers for each place
+for (i in 1:nrow(dresden_places)) {
+  m_customer <- addMarkers(map = m_customer, 
+                           lng = dresden_places$car_stores.lon[i], 
+                           lat = dresden_places$car_stores.lat[i],
+                  label = dresden_places$car_stores.customer[i], 
+                  labelOptions = labelOptions(noHide = TRUE))
+  #popup = dresden_places$car_stores.plz[i])
+}
+
+# Display the map
+m_customer
+```
+
+![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
