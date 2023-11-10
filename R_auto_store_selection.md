@@ -153,15 +153,9 @@ library(lpSolve)
 library(irr)
 library(report)
 library(sjPlot)
-```
-
-    ## #refugeeswelcome
-
-``` r
 library(sjmisc)
 ```
 
-    ## Learn more about sjmisc with 'browseVignettes("sjmisc")'.
     ## 
     ## Attaching package: 'sjmisc'
     ## 
@@ -324,19 +318,79 @@ library(gplots)    # heatmap
     ## 
     ##     lowess
 
-## R Markdown
+### import dataset
 
 ``` r
-summary(cars)
+car_stores<-read_excel("Dresden_car_stores.xlsx",
+                       sheet = "Sheet1")
+names(car_stores)
 ```
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
+    ## [1] "Nr"                "plz"               "note"             
+    ## [4] "residents"         "percetage of male" "qkm"              
+    ## [7] "lat"               "lon"
+
+``` r
+## change column name
+names(car_stores)[names(car_stores) == "percetage of male"] <-"percentage_male"
+```
+
+``` r
+summary(car_stores)
+```
+
+    ##        Nr             plz           note             residents    
+    ##  Min.   : 1.00   Min.   :1067   Length:28          Min.   : 5876  
+    ##  1st Qu.: 7.75   1st Qu.:1128   Class :character   1st Qu.:14201  
+    ##  Median :14.50   Median :1188   Mode  :character   Median :17528  
+    ##  Mean   :14.50   Mean   :1198                      Mean   :18169  
+    ##  3rd Qu.:21.25   3rd Qu.:1264                      3rd Qu.:20987  
+    ##  Max.   :28.00   Max.   :1328                      Max.   :32890  
+    ##  percentage_male       qkm              lat             lon       
+    ##  Min.   :0.3200   Min.   : 3.216   Min.   :51.00   Min.   :13.62  
+    ##  1st Qu.:0.4125   1st Qu.: 4.865   1st Qu.:51.03   1st Qu.:13.71  
+    ##  Median :0.4850   Median : 5.900   Median :51.04   Median :13.76  
+    ##  Mean   :0.4932   Mean   :11.298   Mean   :51.05   Mean   :13.76  
+    ##  3rd Qu.:0.5850   3rd Qu.: 8.921   3rd Qu.:51.07   3rd Qu.:13.80  
+    ##  Max.   :0.6700   Max.   :58.506   Max.   :51.15   Max.   :13.90
+
+### Customer Coverage Analysis
+
+``` r
+car_stores$customer<-car_stores$residents * car_stores$percentage_male
+```
+
+``` r
+# bar plot_number of people 
+# reorder in descending order
+car_stores <- car_stores[order(-car_stores$customer), ]
+
+# the top 3 highest potential customers
+top_3_indices <- 1:3
+
+# Create a vector of colors
+bar_colors <- rep("lightblue", nrow(car_stores))  # Set a default color for all bars
+bar_colors[top_3_indices] <- "blue"  # Highlight the top 3 highest bars in red
+
+
+# re-define y-axis labels
+new_y_labels <- seq(0, ceiling(max(car_stores$customer) / 5000) * 5000, by = 5000)
+
+# determine the y-axis limits based on the custom labels
+y_limits <- range(new_y_labels)
+
+# Create a bar chart with custom colors
+barplot(car_stores$customer, 
+        names.arg = car_stores$plz,
+        xlab = "Dresden", 
+        ylab = "Potential Customers", 
+        col = bar_colors,
+        main = "Potential Customers in Dresden", 
+        beside = TRUE, 
+        ylim = y_limits,las = 2)# 
+```
+
+![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ## Including Plots
 
