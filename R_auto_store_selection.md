@@ -3,7 +3,7 @@ R_auto_store_selection
 SYsherley
 2023-11-10
 
-# Selection of electric vehicle store locations
+## Selection of electric vehicle store locations
 
 ``` r
 # library
@@ -153,14 +153,10 @@ library(lpSolve)
 library(irr)
 library(report)
 library(sjPlot)
-```
-
-    ## Learn more about sjPlot with 'browseVignettes("sjPlot")'.
-
-``` r
 library(sjmisc)
 ```
 
+    ## Learn more about sjmisc with 'browseVignettes("sjmisc")'.
     ## 
     ## Attaching package: 'sjmisc'
     ## 
@@ -323,6 +319,10 @@ library(gplots)    # heatmap
     ## 
     ##     lowess
 
+``` r
+library(png)
+```
+
 ## Import dataset
 
 ``` r
@@ -365,6 +365,8 @@ summary(car_stores)
 car_stores$customer<-car_stores$residents * car_stores$percentage_male
 ```
 
+### bar plot: number of customers
+
 ``` r
 # bar plot_number of people 
 # reorder in descending order
@@ -375,7 +377,7 @@ top_3_indices <- 1:3
 
 # Create a vector of colors
 bar_colors <- rep("lightblue", nrow(car_stores))  # Set a default color for all bars
-bar_colors[top_3_indices] <- "blue"  # Highlight the top 3 highest bars in red
+bar_colors[top_3_indices] <- "blue"         # Highlight the top 3 highest bars in red
 
 
 # re-define y-axis labels
@@ -390,18 +392,119 @@ barplot(car_stores$customer,
         xlab = "Dresden", 
         ylab = "Potential Customers", 
         col = bar_colors,
-        main = "Potential Customers in Dresden", 
+        main = "Potential Customers", 
         beside = TRUE, 
         ylim = y_limits,las = 2)# 
 ```
 
 ![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-## Including Plots
+## Geographic Analysis
 
-You can also embed plots, for example:
+``` r
+#install.packages("geosphere")
+#library(geosphere)
 
-![](R_auto_store_selection_files/figure-gfm/pressure-1.png)<!-- -->
 
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
+car_stores$plz<-as.character(car_stores$plz) # be convenient to assign column and row names
+
+
+# Select the location postcode, lantide, longitudes, and customer number
+dresden_places <- data.frame(car_stores$plz, 
+                             car_stores$lat,
+                             car_stores$lon,
+                             car_stores$customer)
+```
+
+### Calculate distance
+
+``` r
+# create a matrix to show the distance between each locations
+n <- nrow(dresden_places)
+distances_matrix <- matrix(NA, n, n)
+for (i in 1:n) {
+  for (j in 1:n) {
+    distances_matrix[i, j] <- distGeo(
+      p1 = c(dresden_places$car_stores.lon[i], dresden_places$car_stores.lat[i]),
+      p2 = c(dresden_places$car_stores.lon[j], dresden_places$car_stores.lat[j])
+    )
+  }
+}
+
+# assign row and column names to matrix
+rownames(distances_matrix) <- dresden_places$car_stores.plz
+colnames(distances_matrix) <- dresden_places$car_stores.plz
+
+
+# showing 10 rows of matrix
+print(distances_matrix[1:10, ])
+```
+
+    ##           1277      1099      1159     1309      1279      1169      1157
+    ## 1277     0.000  6466.919  7165.057 1472.695  1906.571  9687.124 10087.843
+    ## 1099  6466.919     0.000 10607.028 5514.059  7220.033 13147.652 11789.173
+    ## 1159  7165.057 10607.028     0.000 6494.847  8896.722  2633.711  3589.064
+    ## 1309  1472.695  5514.059  6494.847    0.000  3267.569  9107.867  9075.909
+    ## 1279  1906.571  7220.033  8896.722 3267.569     0.000 11334.217 11948.844
+    ## 1169  9687.124 13147.652  2633.711 9107.867 11334.217     0.000  3337.048
+    ## 1157 10087.843 11789.173  3589.064 9075.909 11948.844  3337.048     0.000
+    ## 1139  8939.783  9683.919  4020.086 7722.569 10845.658  5070.892  2289.654
+    ## 1069  4883.582  9065.168  2303.770 4355.131  6593.295  4810.293  5610.312
+    ## 1257  4443.662 10564.054  9495.091 5878.434  3370.756 11480.121 12975.234
+    ##           1139     1069      1257      1239      1129     1219     1307
+    ## 1277  8939.783 4883.582  4443.662  4408.970  8259.630 2471.840 2726.920
+    ## 1099  9683.919 9065.168 10564.054 10873.753  6837.958 8731.358 6081.652
+    ## 1159  4020.086 2303.770  9495.091  7751.712  6398.772 5898.775 5077.847
+    ## 1309  7722.569 4355.131  5878.434  5588.340  6809.801 3240.945 1527.668
+    ## 1279 10845.658 6593.295  3370.756  4227.912 10066.408 3421.279 4629.782
+    ## 1169  5070.892 4810.293 11480.121  9551.455  8191.326 8130.313 7709.458
+    ## 1157  2289.654 5610.312 12975.234 11310.412  5686.153 9287.709 7548.334
+    ## 1139     0.000 5244.743 12423.023 11022.435  3396.926 8692.323 6237.000
+    ## 1069  5244.743    0.000  7371.478  5806.984  6467.207 3679.609 3099.111
+    ## 1257 12423.023 7371.478     0.000  2079.479 12446.960 3735.047 6760.459
+    ##           1237      1109      1259      1127      1328      1217     1097
+    ## 1277  2141.802  9924.470  5612.118  6918.171  7222.641  4586.687 5620.529
+    ## 1099  8487.931  6034.872 10619.018  7311.552  7683.572 10361.442 6856.980
+    ## 1159  7833.672  9601.646 11820.755  4350.399 14333.836  4424.284 3954.949
+    ## 1309  3548.985  8470.931  7056.758  5575.511  7904.898  4916.530 4319.761
+    ## 1279  1788.390 11480.995  3832.774  8809.521  5831.118  5679.493 7520.330
+    ## 1169 10101.402 11433.213 13962.456  6385.761 16895.851  6242.795 6346.745
+    ## 1157 11141.074  8776.713 15179.596  4481.353 16942.939  8005.840 5129.204
+    ## 1139 10351.589  6524.522 14364.350  2433.799 15382.010  7950.710 3439.565
+    ## 1069  5570.227  9375.622  9590.362  4384.062 12085.580  2740.362 3357.886
+    ## 1257  2334.390 14348.500  2653.574 10814.002  7970.152  5237.437 9488.370
+    ##           1187      1326     1067      1324      1156      1189      1108
+    ## 1277  6971.765  3637.706 6712.832  4340.535 13127.304  7315.643 12732.496
+    ## 1099 11468.424  7521.222 8978.767  4241.070 15034.331 12459.813  7043.154
+    ## 1159  1862.795 10731.906 2004.846 10935.014  6115.287  3411.852 13671.182
+    ## 1309  6681.150  4811.875 5691.265  4461.000 12222.499  7329.855 11403.835
+    ## 1279  8470.036  1844.019 8589.220  3940.424 14935.983  8553.421 13941.708
+    ## 1169  3059.674 13178.183 4221.482 13558.629  4314.330  3994.281 15569.456
+    ## 1157  5244.803 13725.537 3388.678 13233.390  3271.991  6663.569 12877.078
+    ## 1139  5882.693 12519.439 2594.432 11550.826  5388.294  7431.466 10647.593
+    ## 1069  2416.620  8429.761 2650.668  8814.768  8388.858  3487.106 13211.424
+    ## 1257  8420.755  4021.304 9891.367  7195.693 15563.988  7886.482 17135.008
+
+### Heatmap
+
+``` r
+# using the matrix to create a heatmap to more directly show the distance
+#install.packages("gplots")
+library(gplots)
+#install.packages("png")
+library(png)
+```
+
+``` r
+# heatmap
+heatmap.2(distances_matrix,
+          col = colorRampPalette(c("white", "blue"))(100),  # Define the color scheme
+          trace = "none",                                   # Remove trace lines
+          density.info = "none",                            # Remove density plot
+          main = "Geographic Distance",
+          key.title = NA)                                   # Remove color key title
+```
+
+![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+\`\`\`
