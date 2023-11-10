@@ -3,7 +3,7 @@ R_auto_store_selection
 SYsherley
 2023-11-10
 
-## Selection of electric vehicle store locations
+# Selection of electric vehicle store locations
 
 ``` r
 # library
@@ -153,6 +153,11 @@ library(lpSolve)
 library(irr)
 library(report)
 library(sjPlot)
+```
+
+    ## Learn more about sjPlot with 'browseVignettes("sjPlot")'.
+
+``` r
 library(sjmisc)
 ```
 
@@ -318,7 +323,7 @@ library(gplots)    # heatmap
     ## 
     ##     lowess
 
-### import dataset
+## Import dataset
 
 ``` r
 car_stores<-read_excel("Dresden_car_stores.xlsx",
@@ -354,13 +359,43 @@ summary(car_stores)
     ##  3rd Qu.:0.5850   3rd Qu.: 8.921   3rd Qu.:51.07   3rd Qu.:13.80  
     ##  Max.   :0.6700   Max.   :58.506   Max.   :51.15   Max.   :13.90
 
-### Customer Coverage Analysis
+## Customer Coverage Analysis
 
 ``` r
 car_stores$customer<-car_stores$residents * car_stores$percentage_male
 ```
 
-![](R_auto_store_selection_files/figure-gfm/customer-1.png)<!-- -->
+``` r
+# bar plot_number of people 
+# reorder in descending order
+car_stores <- car_stores[order(-car_stores$customer), ]
+
+# the top 3 highest potential customers
+top_3_indices <- 1:3
+
+# Create a vector of colors
+bar_colors <- rep("lightblue", nrow(car_stores))  # Set a default color for all bars
+bar_colors[top_3_indices] <- "blue"  # Highlight the top 3 highest bars in red
+
+
+# re-define y-axis labels
+new_y_labels <- seq(0, ceiling(max(car_stores$customer) / 5000) * 5000, by = 5000)
+
+# determine the y-axis limits based on the custom labels
+y_limits <- range(new_y_labels)
+
+# Create a bar chart with custom colors
+barplot(car_stores$customer, 
+        names.arg = car_stores$plz,
+        xlab = "Dresden", 
+        ylab = "Potential Customers", 
+        col = bar_colors,
+        main = "Potential Customers in Dresden", 
+        beside = TRUE, 
+        ylim = y_limits,las = 2)# 
+```
+
+![](R_auto_store_selection_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ## Including Plots
 
